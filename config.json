@@ -1,0 +1,71 @@
+{
+    "country": [
+        {
+            "name": "total_unicorns",
+            "grouping": ["country"],
+            "column": "company", 
+            "operation": "count"
+        },
+        {
+            "name": "average_valuation",
+            "grouping": ["country"],
+            "column": "valuation", 
+            "operation": "mean"
+        },
+        {
+            "name": "max_valuation",
+            "grouping": ["country"],
+            "column": "valuation", 
+            "operation": "max"
+        }
+    ],
+    "country_time_series": [
+        {
+            "name": "total_unicorns",
+            "grouping": ["country", "date_joined"],
+            "column": "company", 
+            "operation": "count"
+        },
+        {
+            "name": "total_valuation",
+            "grouping": ["country", "date_joined"],
+            "column": "valuation", 
+            "operation": "sum"
+        }
+    ],
+    "time_series_cumsum": [
+        {
+            "name": "cumsum_unicorns",
+            "grouping": ["country"],
+            "column": "total_unicorns", 
+            "operation": "count"
+        },
+        {
+            "name": "cumsum_valuation",
+            "grouping": ["country"],
+            "column": "total_valuation", 
+            "operation": "sum"
+        }
+    ],
+    "investor": [
+        {
+            "name": "total_companies",
+            "grouping": ["select_investors_single"],
+            "column": "company", 
+            "operation": "count"
+        },
+        {
+            "name": "total_industries",
+            "grouping": ["select_investors_single"],
+            "column": "industry", 
+            "operation": "count"
+        },
+        {
+            "name": "total_company_valuations",
+            "grouping": ["select_investors_single"],
+            "column": "valuation", 
+            "operation": "sum"
+        }
+    ]
+
+}
