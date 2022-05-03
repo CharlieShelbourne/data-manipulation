@@ -1,101 +1,34 @@
 import pandas as pd
+import json
+import numpy as np
 
-from clean import clean
+from metrics import Metrics
+from generate_metrics import *
 
-df = pd.read_csv("./unicorn_companies.csv")
-df = clean(df)
-df = df.sort_values(by="founded_year")
+# load metrics config file
+with open("config.json") as file:
+    metrics_config = json.load(file)
 
-metric_config = {
-    "country": [
-        {
-            "name": "total_unicorns",
-            "grouping": ["country"],
-            "column": "company", 
-            "operation": "count"
-        },
-        {
-            "name": "average_valuation",
-            "grouping": ["country"],
-            "column": "valuation", 
-            "operation": "mean"
-        },
-        {
-            "name": "max_valuation",
-            "grouping": ["country"],
-            "column": "valuation", 
-            "operation": "max"
-        }
-    ],
-    "country_time_series": [
-        {
-            "name": "total_unicorns",
-            "grouping": ["country", "founded_year"],
-            "column": "company", 
-            "operation": "count"
-        },
-        {
-            "name": "total_valuation",
-            "grouping": ["country", "founded_year"],
-            "column": "valuation", 
-            "operation": "sum"
-        }
-    ],
-    "investor": [
-        {
-            "name": "total_companies",
-            "grouping": ["select_investors_single"],
-            "column": "company", 
-            "operation": "count"
-        },
-        {
-            "name": "total_industries",
-            "grouping": ["select_investors_single"],
-            "column": "industry", 
-            "operation": "count"
-        },
-        {
-            "name": "total_company_valuations",
-            "grouping": ["select_investors_single"],
-            "column": "valuation", 
-            "operation": "sum"
-        }
-    ]
+# metrics class instance
+metrics = Metrics()
 
-}
-
-def generate_metrics(df: pd.DataFrame, metrics_cofigs: list, expanding: bool=False) -> pd.DataFrame:
-
-    # construct dataframe with category columns from grouping 
-    # uses first operation to generate the resulting new index and uses index as a base frame to add metrics to
-    grouped_obj = df.groupby(metrics_cofigs[0]["grouping"])
-    metrics_df = getattr(grouped_obj, metrics_cofigs[0]["operation"])()[[]].reset_index()
-
-    # loop through each operation in table list and add to metrics dataframe
-    for params in metrics_cofigs:
-
-        if expanding:
-            grouped_obj = df.groupby(params["grouping"]).expanding()
-        else:
-            grouped_obj = df.groupby(params["grouping"])
-
-        operation = params["operation"]
-        column = params["column"]
-
-        metrics_df[params["name"]] = getattr(grouped_obj, operation)()[column].reset_index(drop=True)
-
-    return metrics_df
-
+#  load and clean data
+df = pd.read_csv("./data/unicorn_companies.csv")
+df["valuation"] = df["valuation"].replace('[\$,]', '', regex=True).astype(float)
+df["date_joined"] = df["date_joined"].replace('None', np.nan)
+df["date_joined"] = pd.to_datetime(df["date_joined"].astype(str))
+df = df.sort_values(by="date_joined")
 
 # COUNTRY STATS
-country_metrics = generate_metrics(df, metric_config["country"])
-print(country_metrics)
+country_metrics = generate_metrics(df, metrics, metrics_config["country"])
+country_metrics.to_csv("./data/country_metrics.csv")
 
-# TIME SERIES 
-time_series_metrics = generate_metrics(df, metric_config["country_time_series"])
-time_series_cusum = generate_metrics(df, metric_config["country_time_series"], expanding=True)
+# # TIME SERIES 
+time_series_metrics = generate_metrics(df, metrics, metrics_config["country_time_series"])
 print(time_series_metrics)
-print(time_series_cusum)
+time_series_metrics = generate_cumsum_metrics(time_series_metrics, metrics, metrics_config["time_series_cumsum"])
+print(time_series_metrics)
+time_series_metrics.to_csv("./data/time_series_metrics.csv")
 
 # INVESTOR STATS
 # split the investors in to list
@@ -107,5 +40,5 @@ investors = df["select_investors"].explode()
 # inner merge to transform dataframe rows of unique investors per company
 df = pd.merge(investors, df, left_index=True, right_index=True, suffixes=("_single", "_grouped"))
 
-investor_metrics = generate_metrics(df, metric_config["investor"])
-print(investor_metrics)
+investor_metrics = generate_metrics(df, metrics, metrics_config["investor"])
+investor_metrics.to_csv("./data/investor_metrics.csv")
