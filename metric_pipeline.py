@@ -44,15 +44,17 @@ investors = df["select_investors"].explode()
 df = pd.merge(investors, df, left_index=True, right_index=True, suffixes=("_single", "_list"))
 
 # count of companiess in investors portfolio
-investor_df = df.groupby(["select_investors single"])["company"].count().reset_index()
+investor_stats = df.groupby(["select_investors single"])["company"].count().reset_index()
 
 # count of industries in investors portfolio
-investor_df["industry_count"] = df.groupby(["select_investors_single"])["Industry"].count().reset_index(drop=True)
+investor_stats["industry_count"] = df.groupby(by=
+    ["select_investors_single"])["Industry"].count().reset_index(drop=True)
 
 # valiation of companies in investors portfolio
-investor_df["total_valuation"] = df.groupby(["select_investors_single"])["valuation"].sum().reset_index(drop=True)
+investor_stats["total_valuation"] = df.groupby(by=
+    ["select_investors_single"])["valuation"].sum().reset_index(drop=True)
 
-print(investor_df)
+print(investor_stats)
 
 
 

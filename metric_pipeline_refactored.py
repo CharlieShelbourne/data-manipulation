@@ -20,15 +20,13 @@ df["date_joined"] = pd.to_datetime(df["date_joined"].astype(str))
 df = df.sort_values(by="date_joined")
 
 # COUNTRY STATS
-country_metrics = generate_metrics(df, metrics, metrics_config["country"])
-country_metrics.to_csv("./data/country_metrics.csv")
+country_stats = generate_metrics(df, metrics, metrics_config["country"])
+country_stats.to_csv("./data/country_stats.csv")
 
 # # TIME SERIES 
-time_series_metrics = generate_metrics(df, metrics, metrics_config["country_time_series"])
-print(time_series_metrics)
-time_series_metrics = generate_cumsum_metrics(time_series_metrics, metrics, metrics_config["time_series_cumsum"])
-print(time_series_metrics)
-time_series_metrics.to_csv("./data/time_series_metrics.csv")
+time_series = generate_metrics(df, metrics, metrics_config["country_time_series"])
+time_series = generate_cumsum_metrics(time_series, metrics, metrics_config["time_series_cumsum"])
+time_series.to_csv("./data/time_series.csv")
 
 # INVESTOR STATS
 # split the investors in to list
@@ -40,5 +38,5 @@ investors = df["select_investors"].explode()
 # inner merge to transform dataframe rows of unique investors per company
 df = pd.merge(investors, df, left_index=True, right_index=True, suffixes=("_single", "_grouped"))
 
-investor_metrics = generate_metrics(df, metrics, metrics_config["investor"])
-investor_metrics.to_csv("./data/investor_metrics.csv")
+investor_stats = generate_metrics(df, metrics, metrics_config["investor"])
+investor_stats.to_csv("./data/investor_stats.csv")
