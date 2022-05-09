@@ -25,7 +25,11 @@ country_stats.to_csv("./data/country_stats.csv")
 
 # # TIME SERIES 
 time_series = generate_metrics(df, metrics, metrics_config["country_time_series"])
-time_series = generate_cumsum_metrics(time_series, metrics, metrics_config["time_series_cumsum"])
+time_series = generate_cumsum_metrics(
+    time_series, 
+    metrics, 
+    metrics_config["time_series_cumsum"]
+    )
 time_series.to_csv("./data/time_series.csv")
 
 # INVESTOR STATS
@@ -36,7 +40,13 @@ df["select_investors"] = df["select_investors"].str.split(',')
 investors = df["select_investors"].explode()
 
 # inner merge to transform dataframe rows of unique investors per company
-df = pd.merge(investors, df, left_index=True, right_index=True, suffixes=("_single", "_grouped"))
+df = pd.merge(
+    investors, 
+    df, 
+    left_index=True, 
+    right_index=True, 
+    suffixes=("_single", "_grouped")
+    )
 
 investor_stats = generate_metrics(df, metrics, metrics_config["investor"])
 investor_stats.to_csv("./data/investor_stats.csv")
